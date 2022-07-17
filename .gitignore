@@ -1,0 +1,18 @@
+node_modules
+.env
+coverage
+coverage.json
+typechain
+typechain-types
+deployments
+
+#Hardhat files
+cache
+artifacts
+
+#package
+package/*
+!package/hardhat.config.ts
+!package/package.json
+!package/tsconfig.json
+!package/yarn.lock
