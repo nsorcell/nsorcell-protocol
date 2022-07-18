@@ -18,9 +18,7 @@ const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY ?? ""
 const POLYGONSCAN_API_KEY = process.env.POLYGONSCAN_API_KEY ?? ""
 
 const config: HardhatUserConfig = {
-  paths: {
-    sources: "./contracts",
-  },
+  paths: {},
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {

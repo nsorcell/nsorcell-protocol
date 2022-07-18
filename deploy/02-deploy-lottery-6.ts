@@ -1,4 +1,5 @@
 import { parseEther } from "ethers/lib/utils"
+import { ethers } from "hardhat"
 import { DeployFunction } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 import { developmentChains, networkConfig } from "../helper-hardhat.config"
@@ -27,9 +28,24 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     from: deployer,
     args,
     log: true,
-    waitConfirmations: 5,
+    waitConfirmations: developmentChains.includes(network.name) ? 1 : 5,
   })
   log(`Lottery6 deployed at ${lottery6.address}`)
+
+  log(`Setting Lottery6 address in Registry...`)
+  const registryDeployment = await deployments.get("Registry")
+
+  const signer = await ethers.getSigner(deployer)
+
+  const registry = await ethers.getContractAt(
+    registryDeployment.abi,
+    registryDeployment.address,
+    signer
+  )
+
+  await registry.updateLottery6Address(lottery6.address)
+  log(`Lottery6 address in Registry is set to ${lottery6.address}`)
+
   if (
     !developmentChains.includes(network.name) &&
     process.env.ETHERSCAN_API_KEY

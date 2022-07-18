@@ -1,6 +1,6 @@
 {
   "name": "@nsorcell/protocol",
-  "version": "0.8.0",
+  "version": "0.10.0",
   "licenses": [
     {
       "type": "MIT"
@@ -10,18 +10,26 @@
   "main": "dist/index.js",
   "exports": {
     ".": "./dist/index.js",
-    "./common": "./dist/common.js"
+    "./common": "./dist/common.js",
+    "./contracts": "./dist/contracts/index.js",
+    "./factories": "./dist/factories/contracts/index.js"
   },
   "typesVersions": {
     "*": {
       "common": [
         "dist/common.d.ts"
+      ],
+      "contracts": [
+        "dist/contracts/index.ts"
+      ],
+      "factories": [
+        "dist/contracts/factories/index.ts"
       ]
     }
   },
   "typings": "dist/index.d.ts",
   "scripts": {
-    "build:dev": "rimraf dist && tsup src/common.ts src/factories/contracts/Lottery6__factory.ts src/contracts/Lottery6.ts src/index.ts --dts --sourcemap",
+    "build:dev": "rimraf dist && tsup src/common.ts src/factories/contracts/* src/contracts/* src/index.ts --dts --sourcemap",
     "build": "yarn build:dev --minify",
     "v:patch": "npm version patch",
     "v:minor": "npm version minor",

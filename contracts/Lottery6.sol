@@ -35,7 +35,6 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
   uint16 private constant REQUEST_CONFIRMATIONS = 3;
 
   /* Immutable State Variables */
-  address private immutable i_owner;
   bytes32 private immutable i_keyHash;
   uint32 private immutable i_callbackGasLimit;
   uint32 private immutable i_numberCount;
@@ -62,14 +61,6 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
   event Lottery6__Winners(address[] indexed winners);
   event Lottery6__NoWinners();
 
-  /* Modifiers */
-  modifier onylOwner() {
-    if (msg.sender != i_owner) {
-      revert Lottery6__NotOwner();
-    }
-    _;
-  }
-
   /* Functions */
 
   /**
@@ -89,8 +80,6 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
     uint256 interval,
     uint256 entranceFee
   ) VRFConsumerBaseV2(vrfCoordinator) {
-    i_owner = msg.sender;
-
     i_vrfCoordinator = VRFCoordinatorV2Interface(vrfCoordinator);
     i_keyHash = keyHash;
     i_callbackGasLimit = callbackGasLimit;
@@ -267,22 +256,6 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
     s_totalEntries++;
 
     emit Lottery6__Enter(msg.sender);
-  }
-
-  function forceReset() public onylOwner {
-    address[] memory players = s_players;
-    bool transferSucceeded = true;
-    for (uint256 i = 0; i < players.length; i++) {
-      (bool success, ) = payable(players[i]).call{value: i_entranceFee}("");
-
-      if (!success) {
-        revert Lottery6__TransferFailed(players[i]);
-      }
-    }
-
-    if (transferSucceeded) {
-      resetState(s_totalRandomNumbers, 6);
-    }
   }
 
   function resetState(uint256 totalRandomNumbers, uint256 picksCount) private {
