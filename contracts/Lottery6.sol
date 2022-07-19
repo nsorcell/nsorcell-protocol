@@ -57,8 +57,8 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
   /* Events */
   event Lottery6__Enter(address indexed player);
   event Lottery6__RequestedDraw(uint256 requestId);
-  event Lottery6__Draw(uint256[6] indexed winningNumbers);
-  event Lottery6__Winners(address[] indexed winners);
+  event Lottery6__Draw(uint256[6] winningNumbers);
+  event Lottery6__Winners(address[] winners);
   event Lottery6__NoWinners();
 
   /* Functions */
