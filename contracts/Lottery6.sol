@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/KeeperCompatibleInterface.sol";
+import "./ArrayUtils.sol";
 
 error Lottery6__NotOwner();
 error Lottery6__PaymentNotEnough();
@@ -18,6 +19,7 @@ error Lottery6__TransferFailed(address forPLayer);
 error Lottery6__PlayerAlreadyEntered();
 
 contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
+  using ArrayUtils for uint256[6];
   /* Types */
   enum LotteryState {
     STANDBY,
@@ -50,7 +52,6 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
   uint256 private s_totalRandomNumbers;
   address[] private s_players;
   mapping(address => uint256[6]) private s_entries;
-  mapping(uint256 => bool) private s_numberDedup;
   History[] private s_history;
   LotteryState private s_state;
 
@@ -174,16 +175,15 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
     while (rndPicks != 6) {
       uint256 number = randomWords[nIndex] % 45;
 
-      if (s_numberDedup[number] == false) {
+      if (!winningNumbers.contains(number)) {
         winningNumbers[rndPicks] = number;
-        s_numberDedup[number] = true;
         rndPicks++;
       }
 
       nIndex++;
     }
 
-    winningNumbers = sort(winningNumbers);
+    winningNumbers.sort();
 
     emit Lottery6__Draw(winningNumbers);
 
@@ -223,7 +223,7 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
     }
 
     s_totalRandomNumbers = nIndex;
-    resetState(nIndex, rndPicks);
+    resetState();
   }
 
   /**
@@ -258,11 +258,7 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
     emit Lottery6__Enter(msg.sender);
   }
 
-  function resetState(uint256 totalRandomNumbers, uint256 picksCount) private {
-    for (uint256 i = 0; i < totalRandomNumbers - picksCount; i++) {
-      delete s_numberDedup[i];
-    }
-
+  function resetState() private {
     for (uint256 i = 0; i < s_totalEntries; i++) {
       address player = s_players[i];
 
@@ -326,36 +322,5 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
 
   function getDrawInterval() public view returns (uint256) {
     return i_interval;
-  }
-
-  function sort(uint256[6] memory data)
-    public
-    pure
-    returns (uint256[6] memory)
-  {
-    quickSort(data, int256(0), int256(data.length - 1));
-    return data;
-  }
-
-  function quickSort(
-    uint256[6] memory arr,
-    int256 left,
-    int256 right
-  ) private pure {
-    int256 i = left;
-    int256 j = right;
-    if (i == j) return;
-    uint256 pivot = arr[uint256(left + (right - left) / 2)];
-    while (i <= j) {
-      while (arr[uint256(i)] < pivot) i++;
-      while (pivot < arr[uint256(j)]) j--;
-      if (i <= j) {
-        (arr[uint256(i)], arr[uint256(j)]) = (arr[uint256(j)], arr[uint256(i)]);
-        i++;
-        j--;
-      }
-    }
-    if (left < j) quickSort(arr, left, j);
-    if (i < right) quickSort(arr, i, right);
   }
 }
