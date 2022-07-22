@@ -16,7 +16,6 @@ error Lottery6__UpkeepUnnecessary(
 );
 error Lottery6__NumbersNotDrawn();
 error Lottery6__TransferFailed(address forPLayer);
-error Lottery6__PlayerAlreadyEntered();
 
 contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
   using ArrayUtils for uint256[6];
@@ -49,7 +48,6 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
   uint256 private s_totalEntries;
   uint256 private s_lastTimestamp;
   uint256 private s_draws;
-  uint256 private s_totalRandomNumbers;
   address[] private s_players;
   mapping(address => uint256[6]) private s_entries;
   History[] private s_history;
@@ -192,10 +190,7 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
 
     for (uint256 i = 0; i < s_totalEntries; i++) {
       address player = s_players[i];
-      if (
-        keccak256(abi.encode(winningNumbers)) ==
-        keccak256(abi.encode(s_entries[player]))
-      ) {
+      if (winningNumbers.equals(s_entries[player])) {
         winners[i] = s_players[i];
       }
 
@@ -222,7 +217,6 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
       emit Lottery6__NoWinners();
     }
 
-    s_totalRandomNumbers = nIndex;
     resetState();
   }
 
@@ -240,15 +234,9 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
       revert Lottery6__PaymentNotEnough();
     }
 
-    if (
-      keccak256(abi.encode(s_entries[msg.sender])) !=
-      keccak256(abi.encode([0, 0, 0, 0, 0, 0]))
-    ) {
-      revert Lottery6__PlayerAlreadyEntered();
-    }
-
     if (s_totalEntries == 0 && s_state == LotteryState.STANDBY) {
       s_state = LotteryState.OPEN;
+      s_lastTimestamp = block.timestamp;
     }
 
     s_entries[msg.sender] = numbers;
@@ -259,18 +247,11 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
   }
 
   function resetState() private {
-    for (uint256 i = 0; i < s_totalEntries; i++) {
-      address player = s_players[i];
-
-      delete s_entries[player];
-    }
-
     delete s_players;
     s_state = LotteryState.STANDBY;
     s_draws++;
     s_lastTimestamp = block.timestamp;
     s_totalEntries = 0;
-    s_totalRandomNumbers = 0;
   }
 
   function addHistoryEntry(

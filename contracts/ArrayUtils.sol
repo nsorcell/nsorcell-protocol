@@ -15,6 +15,15 @@ library ArrayUtils {
     }
   }
 
+  // expects arrays to be sorted in the same direction.
+  function equals(uint256[6] memory arrayA, uint256[6] memory arrayB)
+    internal
+    pure
+    returns (bool)
+  {
+    return keccak256(abi.encode(arrayA)) == keccak256(abi.encode(arrayB));
+  }
+
   function sort(uint256[6] memory data)
     internal
     pure
