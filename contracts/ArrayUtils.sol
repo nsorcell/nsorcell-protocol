@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 library ArrayUtils {
-  function contains(uint256[6] memory array, uint256 num)
+  function contains(uint256[] memory array, uint256 num)
     internal
     pure
     returns (bool)
@@ -16,7 +16,7 @@ library ArrayUtils {
   }
 
   // expects arrays to be sorted in the same direction.
-  function equals(uint256[6] memory arrayA, uint256[6] memory arrayB)
+  function equals(uint256[] memory arrayA, uint256[] memory arrayB)
     internal
     pure
     returns (bool)
@@ -24,17 +24,17 @@ library ArrayUtils {
     return keccak256(abi.encode(arrayA)) == keccak256(abi.encode(arrayB));
   }
 
-  function sort(uint256[6] memory data)
+  function sort(uint256[] memory data)
     internal
     pure
-    returns (uint256[6] memory)
+    returns (uint256[] memory)
   {
     quickSort(data, int256(0), int256(data.length - 1));
     return data;
   }
 
   function quickSort(
-    uint256[6] memory arr,
+    uint256[] memory arr,
     int256 left,
     int256 right
   ) private pure {
