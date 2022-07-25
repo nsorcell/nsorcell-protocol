@@ -12,8 +12,12 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const config = networkConfig[network.config.chainId!]
 
+  const vrfCoordinatorV2Address = developmentChains.includes(network.name)
+    ? (await deployments.get("VRFCoordinatorV2Mock")).address
+    : config.vrfCoordinatorV2
+
   const args = [
-    config.vrfCoordinatorV2,
+    vrfCoordinatorV2Address,
     config.keyHash,
     config.callbackGasLimit,
     config.randomNumberCount,
@@ -54,4 +58,4 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 }
 export default deploy
-deploy.tags = ["all", "Lottery6", "production"]
+deploy.tags = ["all", "lottery", "production"]

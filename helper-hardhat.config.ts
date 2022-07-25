@@ -19,25 +19,24 @@ export interface networkConfigInfo {
 export const networkConfig: networkConfigInfo = {
   31337: {
     name: "localhost",
-    subscriptionId: "8527",
+    subscriptionId: "1",
     keyHash:
       "0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc", // 30 gwei
     keepersUpdateInterval: (MINUTE / 2).toString(),
     raffleEntranceFee: parseEther("0.1").toString(),
     callbackGasLimit: "1000000",
-    vrfCoordinatorV2: "0x6168499c0cFfCaCD319c818142124B7A15E857ab",
-    randomNumberCount: 50,
+    randomNumberCount: 6,
   },
   4: {
     name: "rinkeby",
     subscriptionId: "8527",
     keyHash:
       "0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc", // 30 gwei
-    keepersUpdateInterval: (HOUR * 2).toString(),
+    keepersUpdateInterval: (HOUR / 2).toString(),
     raffleEntranceFee: parseEther("0.1").toString(),
-    callbackGasLimit: "500000",
+    callbackGasLimit: "2000000",
     vrfCoordinatorV2: "0x6168499c0cFfCaCD319c818142124B7A15E857ab",
-    randomNumberCount: 15,
+    randomNumberCount: 20,
   },
   1: {
     name: "mainnet",

@@ -7,6 +7,8 @@ import "@chainlink/contracts/src/v0.8/interfaces/KeeperCompatibleInterface.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "./ArrayUtils.sol";
 
+import "hardhat/console.sol";
+
 error Lottery6__NotOwner();
 error Lottery6__PaymentNotEnough();
 error Lottery6__EntryClosed();
@@ -116,6 +118,8 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
 
     upkeepNeeded = isOpen && timePassed && hasPlayers && hasBalance;
 
+    console.log(isOpen, timePassed, hasPlayers, hasBalance);
+
     return (upkeepNeeded, "");
   }
 
@@ -170,10 +174,10 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
     uint256, /* requestId */
     uint256[] memory randomWords
   ) internal override {
-    uint256[] memory winningNumbers;
+    uint256[] memory winningNumbers = new uint256[](6);
 
-    uint256 rndPicks = 0;
     uint256 nIndex = 0;
+    uint256 rndPicks = 0;
 
     while (rndPicks != 6) {
       uint256 number = randomWords[nIndex] % 45;
