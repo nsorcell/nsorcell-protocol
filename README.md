@@ -25,11 +25,11 @@ This project is a hardhat smartcontract lottery, but a little different than the
 ## Commands
 
 ```shell
-yarn hardhat node // for local chain (runs all deployments, + mocks)
-yarn hardhat deploy -- network [network] // (runs all deployments except mocks)
-yarn typechain:package // generates typechain output for the @nsorcell/protocol package
+yarn hardhat node #for local chain (runs all deployments, + mocks)
+yarn hardhat deploy -- network [network] #(runs all deployments except mocks)
+yarn typechain:package #generates typechain output for the @nsorcell/protocol package
 
-cd package && yarn build // create a production build of the @nsorcell/protocol package
-npm version [patch|minor|major] // upgrade the version of the @nsorcell/procotol package
-npm publish --access public // publish npm package to npmjs
+cd package && yarn build #create a production build of the @nsorcell/protocol package
+npm version [patch|minor|major] #upgrade the version of the @nsorcell/procotol package
+npm publish --access public #publish npm package to npmjs
 ```
