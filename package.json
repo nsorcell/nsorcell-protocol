@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "test": "hardhat test",
     "typechain:package": "hardhat typechain --config ./package/hardhat.config.ts"
   },
   "devDependencies": {
