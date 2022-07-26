@@ -54,6 +54,7 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
   uint256 private s_totalEntries;
   uint256 private s_lastTimestamp;
   uint256 private s_draws;
+  address[] private s_winners;
   mapping(address => uint256[]) private s_entries;
   EnumerableSet.AddressSet private s_players;
   History[] private s_history;
@@ -117,8 +118,6 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
     bool hasBalance = address(this).balance > 0;
 
     upkeepNeeded = isOpen && timePassed && hasPlayers && hasBalance;
-
-    console.log(isOpen, timePassed, hasPlayers, hasBalance);
 
     return (upkeepNeeded, "");
   }
@@ -195,14 +194,15 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
     emit Lottery6__Draw(winningNumbers);
 
     s_state = LotteryState.CALCULATING;
-    address[] memory winners;
 
     for (uint256 i = 0; i < s_totalEntries; i++) {
       address player = s_players.at(i);
       if (winningNumbers.equals(s_entries[player])) {
-        winners[i] = player;
+        s_winners.push(player);
       }
     }
+
+    address[] memory winners = s_winners;
 
     addHistoryEntry(winningNumbers, winners);
 
@@ -237,7 +237,7 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
       revert Lottery6__EntryClosed();
     }
 
-    if (msg.value > i_entranceFee) {
+    if (msg.value < i_entranceFee) {
       revert Lottery6__PaymentNotEnough();
     }
 
@@ -282,6 +282,7 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
     }
     s_draws++;
     s_lastTimestamp = block.timestamp;
+    delete s_winners;
   }
 
   function addHistoryEntry(
