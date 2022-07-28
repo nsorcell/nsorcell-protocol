@@ -6,7 +6,7 @@ import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/KeeperCompatibleInterface.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-import "./ArrayUtils.sol";
+import "./utils/ArrayUtils.sol";
 
 import "hardhat/console.sol";
 
