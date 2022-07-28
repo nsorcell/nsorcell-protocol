@@ -86,7 +86,7 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
     uint64 subscriptionId,
     uint256 interval,
     uint256 entranceFee
-  ) VRFConsumerBaseV2(vrfCoordinator) {
+  ) payable VRFConsumerBaseV2(vrfCoordinator) {
     i_vrfCoordinator = VRFCoordinatorV2Interface(vrfCoordinator);
     i_keyHash = keyHash;
     i_callbackGasLimit = callbackGasLimit;
@@ -287,14 +287,14 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
     payPlayers(s_hitMap[6], sixHitsReward);
     payPlayers(s_hitMap[5], fiveHitsReward);
     payPlayers(s_hitMap[4], fourHitsReward);
-    payPlayers(s_hitMap[3], fourHitsReward);
+    payPlayers(s_hitMap[3], unitReward);
   }
 
   function payPlayers(address[] memory players, uint256 amount) private {
     uint256 winAmount;
 
     if (players.length > 0) {
-      winAmount = players.length / amount;
+      winAmount = amount / players.length;
 
       for (uint256 i = 0; i < players.length; i++) {
         (bool success, ) = payable(players[i]).call{value: winAmount}("");

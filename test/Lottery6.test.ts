@@ -116,17 +116,17 @@ describe("Lottery6", function () {
 
     it("On 6Hits: History should contain winners in the appropriate index, players should be emptied", async () => {
       // 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
-      await lottery6.enter(threeHits, false, {
+      await lottery6.connect(accounts[1]).enter(threeHits, false, {
         value: parseEther("0.1"),
       })
 
       // 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
-      await lottery6.connect(accounts[1]).enter(fiveHits, false, {
+      await lottery6.connect(accounts[2]).enter(fiveHits, false, {
         value: parseEther("0.1"),
       })
 
       // 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
-      await lottery6.connect(accounts[2]).enter(winningNumbers, false, {
+      await lottery6.connect(accounts[3]).enter(winningNumbers, false, {
         value: parseEther("0.1"),
       })
 
@@ -146,9 +146,19 @@ describe("Lottery6", function () {
       )
       const [, results] = (await lottery6.getHistory()).flat()
 
-      expect(results[3]).to.contain(accounts[0].address)
-      expect(results[5]).to.contain(accounts[1].address)
-      expect(results[6]).to.contain(accounts[2].address)
+      expect(results[3]).to.contain(accounts[1].address)
+      expect(results[5]).to.contain(accounts[2].address)
+      expect(results[6]).to.contain(accounts[3].address)
+
+      const [balance1, balance2, balance3] = await Promise.all([
+        accounts[1].getBalance(),
+        accounts[2].getBalance(),
+        accounts[3].getBalance(),
+      ])
+
+      expect(balance1).to.be.within(parseEther("10045"), parseEther("10055"))
+      expect(balance2).to.be.within(parseEther("10195"), parseEther("10205"))
+      expect(balance3).to.be.within(parseEther("10645"), parseEther("10655"))
 
       const players = await lottery6.getPlayers()
 
