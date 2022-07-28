@@ -14,6 +14,7 @@ This project is a hardhat smartcontract lottery, but a little different than the
   - 10% for 4 hits
   - 20% for 5 hits
   - 65% for 6 hits
+  
 The %-s are distributed between the addresses with the according amount of hits, and if there's at least one 6 hit, the players are expelled from the lottery, so the state resets to STANDBY. In any other case, the state resets to OPEN, and the players are kept for the subsequent draws.
 
 ## Features 
