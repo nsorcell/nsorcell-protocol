@@ -6,8 +6,15 @@ This project is a hardhat smartcontract lottery, but a little different than the
 - Choose 6 numbers from 45.
 - Entry fee is configurable, by default 0.1 ETH
 - By entering once the entry fee is paid, but the player is eligible to subsequent draws, until somebody wins.
-- By hitting all six numbers the winner takes all balance
-- If there are multiple winners, the prize pool is evenly distributed.
+- The prize pool is distributed in the following way:
+  - 0% for 0 hits
+  - 0% for 1 hits
+  - 0% for 2 hits
+  - 5% for 3 hits
+  - 10% for 4 hits
+  - 20% for 5 hits
+  - 65% for 6 hits
+The %-s are distributed between the addresses with the according amount of hits, and if there's at least one 6 hit, the players are expelled from the lottery, so the state resets to STANDBY. In any other case, the state resets to OPEN, and the players are kept for the subsequent draws.
 
 ## Features 
 - Upkeep is done by Chainlink Keepers.
