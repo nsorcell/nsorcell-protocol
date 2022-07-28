@@ -15,7 +15,7 @@ This project is a hardhat smartcontract lottery, but a little different than the
   - 20% for 5 hits
   - 65% for 6 hits
   
-The %-s are distributed between the addresses with the according amount of hits, and if there's at least one 6 hit, the players are expelled from the lottery, so the state resets to STANDBY. In any other case, the state resets to OPEN, and the players are kept for the subsequent draws.
+The %-s are distributed between the addresses with the according amount of hits, and if there's at least one 6 hit, the players are removed from the lottery, so the state resets to STANDBY. In any other case, the state resets to OPEN, and the players are kept for the subsequent draws. The part of the prize pool which is not getting to distribution, accumulates for the following rounds.
 
 ## Features 
 - Upkeep is done by Chainlink Keepers.
@@ -25,10 +25,10 @@ The %-s are distributed between the addresses with the according amount of hits,
 - Contains an npm package under /package, which is installable by `yarn add / npm install @nsorcell/protocol`
 
 ## Future ideas
-- Extend the draw interval to about a day or more, and stake the prizepool in a staking protocol
-- Create an ERC20 token, which will be minted to players in-game, and could be used to e.g pay etry
-- Betting on how many numbers, the players hit
-- Add feature to distribute some % of the prizepool from up to 3 hits.
+- [x] Add feature to distribute some % of the prizepool from up to 3 hits.
+- [ ] Extend the draw interval to about a day or more, and stake the prizepool in a staking protocol
+- [ ] Create an ERC20 token, which will be minted to players in-game, and could be used to e.g pay etry
+- [ ] Betting on how many numbers, the players hit
 
 ## Commands
 
