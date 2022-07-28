@@ -6,8 +6,16 @@ This project is a hardhat smartcontract lottery, but a little different than the
 - Choose 6 numbers from 45.
 - Entry fee is configurable, by default 0.1 ETH
 - By entering once the entry fee is paid, but the player is eligible to subsequent draws, until somebody wins.
-- By hitting all six numbers the winner takes all balance
-- If there are multiple winners, the prize pool is evenly distributed.
+- The prize pool is distributed in the following way:
+  - 0% for 0 hits
+  - 0% for 1 hits
+  - 0% for 2 hits
+  - 5% for 3 hits
+  - 10% for 4 hits
+  - 20% for 5 hits
+  - 65% for 6 hits
+  
+The %-s are distributed between the addresses with the according amount of hits, and if there's at least one 6 hit, the players are removed from the lottery, so the state resets to STANDBY. In any other case, the state resets to OPEN, and the players are kept for the subsequent draws. The part of the prize pool which is not getting to distribution, accumulates for the following rounds.
 
 ## Features 
 - Upkeep is done by Chainlink Keepers.
@@ -17,10 +25,10 @@ This project is a hardhat smartcontract lottery, but a little different than the
 - Contains an npm package under /package, which is installable by `yarn add / npm install @nsorcell/protocol`
 
 ## Future ideas
-- Extend the draw interval to about a day or more, and stake the prizepool in a staking protocol
-- Create an ERC20 token, which will be minted to players in-game, and could be used to e.g pay etry
-- Betting on how many numbers, the players hit
-- Add feature to distribute some % of the prizepool from up to 3 hits.
+- [x] Add feature to distribute some % of the prizepool from up to 3 hits.
+- [ ] Extend the draw interval to about a day or more, and stake the prizepool in a staking protocol
+- [ ] Create an ERC20 token, which will be minted to players in-game, and could be used to e.g pay etry
+- [ ] Betting on how many numbers, the players hit
 
 ## Commands
 
