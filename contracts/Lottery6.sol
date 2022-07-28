@@ -5,6 +5,7 @@ import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/KeeperCompatibleInterface.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import "./ArrayUtils.sol";
 
 import "hardhat/console.sol";
@@ -22,7 +23,8 @@ error Lottery6__AlreadyInGame();
 error Lottery6__TransferFailed(address forPLayer);
 
 contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
-  using ArrayUtils for uint256[];
+  using Uint256ArrayUtils for uint256[];
+  using AddressArrayUtils for address[];
   using EnumerableSet for EnumerableSet.AddressSet;
 
   /* Types */
@@ -35,7 +37,7 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
 
   struct History {
     uint256[] winningNumbers;
-    address[] winners;
+    address[][] results;
   }
 
   /* Constants */
@@ -54,7 +56,7 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
   uint256 private s_totalEntries;
   uint256 private s_lastTimestamp;
   uint256 private s_draws;
-  address[] private s_winners;
+  mapping(uint256 => address[]) private s_hitMap;
   mapping(address => uint256[]) private s_entries;
   EnumerableSet.AddressSet private s_players;
   History[] private s_history;
@@ -64,8 +66,7 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
   event Lottery6__Enter(address indexed player);
   event Lottery6__RequestedDraw(uint256 requestId);
   event Lottery6__Draw(uint256[] winningNumbers);
-  event Lottery6__Winners(address[] winners);
-  event Lottery6__NoWinners();
+  event Lottery6__Results(address[][] results);
 
   /* Functions */
 
@@ -195,34 +196,17 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
 
     s_state = LotteryState.CALCULATING;
 
-    for (uint256 i = 0; i < s_totalEntries; i++) {
-      address player = s_players.at(i);
-      if (winningNumbers.equals(s_entries[player])) {
-        s_winners.push(player);
-      }
+    distributePrizePool(winningNumbers);
+
+    address[][] memory results = new address[][](7);
+
+    for (uint256 i = 0; i < results.length; i++) {
+      results[i] = s_hitMap[i];
     }
 
-    address[] memory winners = s_winners;
+    addHistoryEntry(winningNumbers, results);
 
-    addHistoryEntry(winningNumbers, winners);
-
-    uint256 winnerCount = winners.length;
-
-    if (winnerCount > 0) {
-      uint256 winAmount = address(this).balance / winnerCount;
-
-      for (uint256 i = 0; i < winnerCount; i++) {
-        (bool success, ) = payable(winners[i]).call{value: winAmount}("");
-
-        if (!success) {
-          revert Lottery6__TransferFailed(winners[i]);
-        }
-      }
-
-      emit Lottery6__Winners(winners);
-    } else {
-      emit Lottery6__NoWinners();
-    }
+    emit Lottery6__Results(results);
 
     resetState();
   }
@@ -232,7 +216,7 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
     @dev - The incoming array, which represents the players choices
            should be already sorted.
    */
-  function enter(uint256[6] memory numbers, bool changeNumbers) public payable {
+  function enter(uint256[6] memory numbers, bool updateNumbers) public payable {
     if (s_state != LotteryState.OPEN && s_state != LotteryState.STANDBY) {
       revert Lottery6__EntryClosed();
     }
@@ -241,7 +225,7 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
       revert Lottery6__PaymentNotEnough();
     }
 
-    if (s_players.contains(msg.sender) && !changeNumbers) {
+    if (s_players.contains(msg.sender) && !updateNumbers) {
       revert Lottery6__AlreadyInGame();
     }
 
@@ -274,6 +258,54 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
     return false;
   }
 
+  function determineHitMap(uint256[] memory winningNumbers) private {
+    for (uint256 i = 0; i < s_totalEntries; i++) {
+      uint256 hits = 0;
+      address player = s_players.at(i);
+      uint256[] memory playerNumbers = s_entries[player];
+
+      for (uint256 j = 0; j < winningNumbers.length; j++) {
+        if (playerNumbers.contains(winningNumbers[j])) {
+          hits++;
+        }
+      }
+
+      s_hitMap[hits].push(player);
+    }
+  }
+
+  function distributePrizePool(uint256[] memory winningNumbers) private {
+    determineHitMap(winningNumbers);
+
+    // Sum should be the whole balance
+    // 5% + 10% + 20% + 65%
+    uint256 unitReward = address(this).balance / 20;
+    uint256 fourHitsReward = unitReward * 2;
+    uint256 fiveHitsReward = unitReward * 4;
+    uint256 sixHitsReward = unitReward * 13;
+
+    payPlayers(s_hitMap[6], sixHitsReward);
+    payPlayers(s_hitMap[5], fiveHitsReward);
+    payPlayers(s_hitMap[4], fourHitsReward);
+    payPlayers(s_hitMap[3], fourHitsReward);
+  }
+
+  function payPlayers(address[] memory players, uint256 amount) private {
+    uint256 winAmount;
+
+    if (players.length > 0) {
+      winAmount = players.length / amount;
+
+      for (uint256 i = 0; i < players.length; i++) {
+        (bool success, ) = payable(players[i]).call{value: winAmount}("");
+
+        if (!success) {
+          revert Lottery6__TransferFailed(players[i]);
+        }
+      }
+    }
+  }
+
   function resetState() private {
     if (s_totalEntries > 0) {
       s_state = LotteryState.OPEN;
@@ -282,14 +314,32 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
     }
     s_draws++;
     s_lastTimestamp = block.timestamp;
-    delete s_winners;
+
+    if (s_hitMap[6].length > 0) {
+      resetPlayers();
+    }
+
+    for (uint256 i = 0; i < 7; i++) {
+      delete s_hitMap[i];
+    }
+  }
+
+  function resetPlayers() private {
+    address[] memory players = s_players.values();
+
+    for (uint256 i = 0; i < players.length; i++) {
+      address player = players[i];
+
+      s_players.remove(player);
+      delete s_entries[player];
+    }
   }
 
   function addHistoryEntry(
     uint256[] memory winningNumbers,
-    address[] memory winners
+    address[][] memory results
   ) private {
-    s_history.push(History(winningNumbers, winners));
+    s_history.push(History(winningNumbers, results));
   }
 
   /* View Functions */

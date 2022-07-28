@@ -9,7 +9,9 @@ import { developmentChains, networkConfig } from "../helper-hardhat.config"
 describe("Lottery6", function () {
   const config = networkConfig[network.config.chainId!],
     winningNumbers = [1, 9, 16, 24, 25, 41],
-    luckyNumbers = [1, 2, 3, 4, 5, 6]
+    threeHits = [1, 9, 16, 4, 5, 6],
+    fourHits = [1, 9, 16, 24, 5, 6],
+    fiveHits = [1, 9, 16, 24, 25, 6]
 
   let accounts: SignerWithAddress[],
     deployer: SignerWithAddress,
@@ -38,27 +40,27 @@ describe("Lottery6", function () {
   describe("enter", () => {
     it("reverts when you don't pay enough", async () => {
       await expect(
-        lottery6.enter(luckyNumbers, false)
+        lottery6.enter(threeHits, false)
       ).to.be.revertedWithCustomError(lottery6, "Lottery6__PaymentNotEnough")
     })
 
     it("should store the player, and the submitted numbers after entering the lottery.", async () => {
-      await lottery6.enter(luckyNumbers, false, { value: parseEther("0.1") })
+      await lottery6.enter(threeHits, false, { value: parseEther("0.1") })
       const storedNumbers = await lottery6.getPlayerNumbers(deployer.address)
 
       expect(JSON.stringify(storedNumbers.map((n) => n.toNumber()))).to.equals(
-        JSON.stringify(luckyNumbers)
+        JSON.stringify(threeHits)
       )
     })
 
     it("emits event on enter", async () => {
       await expect(
-        lottery6.enter(luckyNumbers, false, { value: parseEther("0.1") })
+        lottery6.enter(threeHits, false, { value: parseEther("0.1") })
       ).to.emit(lottery6, "Lottery6__Enter")
     })
 
     it("doesn't allow entrance when the lottery is drawing", async () => {
-      await lottery6.enter(luckyNumbers, false, { value: parseEther("0.1") })
+      await lottery6.enter(threeHits, false, { value: parseEther("0.1") })
       await network.provider.send("evm_increaseTime", [
         config.keepersUpdateInterval! + 1,
       ])
@@ -68,7 +70,7 @@ describe("Lottery6", function () {
       expect(await lottery6.getState()).to.be.eq("2") // DRAWING
 
       await expect(
-        lottery6.enter(luckyNumbers, false, {
+        lottery6.enter(fourHits, false, {
           value: parseEther("0.1"),
         })
       ).to.be.revertedWithCustomError(lottery6, "Lottery6__EntryClosed")
@@ -76,8 +78,14 @@ describe("Lottery6", function () {
   })
 
   describe("fulfillRandomWords", () => {
-    it("should emit the NoWinners if the numbers are not matching", async () => {
-      await lottery6.enter(luckyNumbers, false, {
+    it("On no 6Hits: History should contain winners in the appropriate index, players should be kept", async () => {
+      // 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+      await lottery6.enter(threeHits, false, {
+        value: parseEther("0.1"),
+      })
+
+      // 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+      await lottery6.connect(accounts[1]).enter(fiveHits, false, {
         value: parseEther("0.1"),
       })
 
@@ -96,18 +104,29 @@ describe("Lottery6", function () {
         lottery6.address
       )
 
-      const history = await lottery6.getHistory()
+      const [, results] = (await lottery6.getHistory()).flat()
 
-      const [result, winners] = history.flat()
+      expect(results[3]).to.contain(accounts[0].address)
+      expect(results[5]).to.contain(accounts[1].address)
 
-      expect(JSON.stringify(result.map((n) => n.toString()))).to.equal(
-        JSON.stringify(winningNumbers.map((n) => n.toString()))
-      )
-      expect(winners.length).to.equal(0)
+      const players = await lottery6.getPlayers()
+
+      expect(players).to.contain(accounts[0].address, accounts[1].address)
     })
 
-    it("should emit the Winners if the numbers are matching", async () => {
-      await lottery6.enter(winningNumbers, false, {
+    it("On 6Hits: History should contain winners in the appropriate index, players should be emptied", async () => {
+      // 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+      await lottery6.enter(threeHits, false, {
+        value: parseEther("0.1"),
+      })
+
+      // 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+      await lottery6.connect(accounts[1]).enter(fiveHits, false, {
+        value: parseEther("0.1"),
+      })
+
+      // 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
+      await lottery6.connect(accounts[2]).enter(winningNumbers, false, {
         value: parseEther("0.1"),
       })
 
@@ -121,19 +140,19 @@ describe("Lottery6", function () {
       const tx = await lottery6.performUpkeep("0x")
       const rc = await tx.wait(1) // waits 1 block
 
-      await vrfCoordinatorV2Mock.fulfillRandomWords(
+      const tx2 = await vrfCoordinatorV2Mock.fulfillRandomWords(
         rc!.events![1].args!.requestId,
         lottery6.address
       )
+      const [, results] = (await lottery6.getHistory()).flat()
 
-      const history = await lottery6.getHistory()
+      expect(results[3]).to.contain(accounts[0].address)
+      expect(results[5]).to.contain(accounts[1].address)
+      expect(results[6]).to.contain(accounts[2].address)
 
-      const [result, winners] = history.flat()
+      const players = await lottery6.getPlayers()
 
-      expect(JSON.stringify(result.map((n) => n.toString()))).to.equal(
-        JSON.stringify(winningNumbers.map((n) => n.toString()))
-      )
-      expect(winners[0]).to.equal(accounts[0].address)
+      expect(players).to.be.empty
     })
   })
 })

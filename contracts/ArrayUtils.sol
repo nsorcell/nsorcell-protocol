@@ -1,7 +1,9 @@
 // SPDX-License-Identifier:MIT
 pragma solidity ^0.8.9;
 
-library ArrayUtils {
+import "hardhat/console.sol";
+
+library Uint256ArrayUtils {
   function contains(uint256[] memory array, uint256 num)
     internal
     pure
@@ -53,5 +55,13 @@ library ArrayUtils {
     }
     if (left < j) quickSort(arr, left, j);
     if (i < right) quickSort(arr, i, right);
+  }
+}
+
+library AddressArrayUtils {
+  function log(address[] memory arr) internal view {
+    for (uint256 i = 0; i < arr.length; i++) {
+      console.log(arr[i]);
+    }
   }
 }
