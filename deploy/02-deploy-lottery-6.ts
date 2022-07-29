@@ -33,7 +33,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     args,
     log: true,
     waitConfirmations: developmentChains.includes(network.name) ? 1 : 5,
-    value: parseEther("1000"),
+    value: parseEther("1"),
   })
   log(`Lottery6 deployed at ${lottery6.address}`)
 

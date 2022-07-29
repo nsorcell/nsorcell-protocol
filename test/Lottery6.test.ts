@@ -117,7 +117,7 @@ describe("Lottery6", function () {
     it("On 6Hits: History should contain winners in the appropriate index, players should be emptied", async () => {
       // 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
       await lottery6.connect(accounts[1]).enter(threeHits, false, {
-        value: parseEther("0.1"),
+        value: parseEther("1000"),
       })
 
       // 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
@@ -156,7 +156,7 @@ describe("Lottery6", function () {
         accounts[3].getBalance(),
       ])
 
-      expect(balance1).to.be.within(parseEther("10045"), parseEther("10055"))
+      expect(balance1).to.be.within(parseEther("9045"), parseEther("9055"))
       expect(balance2).to.be.within(parseEther("10195"), parseEther("10205"))
       expect(balance3).to.be.within(parseEther("10645"), parseEther("10655"))
 
