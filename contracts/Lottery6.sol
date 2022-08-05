@@ -180,7 +180,7 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
     uint256 rndPicks = 0;
 
     while (rndPicks != 6) {
-      uint256 number = randomWords[nIndex] % 45;
+      uint256 number = randomWords[nIndex] % 46;
 
       if (!winningNumbers.contains(number) && number != 0) {
         winningNumbers[rndPicks] = number;
