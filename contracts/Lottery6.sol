@@ -31,8 +31,7 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
   enum LotteryState {
     STANDBY,
     OPEN,
-    DRAWING,
-    CALCULATING
+    DRAWING
   }
 
   struct History {
@@ -193,8 +192,6 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
     winningNumbers.sort();
 
     emit Lottery6__Draw(winningNumbers);
-
-    s_state = LotteryState.CALCULATING;
 
     distributePrizePool(winningNumbers);
 
