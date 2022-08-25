@@ -175,18 +175,18 @@ contract Lottery6 is VRFConsumerBaseV2, KeeperCompatibleInterface {
   ) internal override {
     uint256[] memory winningNumbers = new uint256[](6);
 
-    uint256 nIndex = 0;
+    uint256 index = 0;
     uint256 rndPicks = 0;
 
     while (rndPicks != 6) {
-      uint256 number = randomWords[nIndex] % 46;
+      uint256 number = randomWords[index] % 46;
 
       if (!winningNumbers.contains(number) && number != 0) {
         winningNumbers[rndPicks] = number;
         rndPicks++;
       }
 
-      nIndex++;
+      index++;
     }
 
     winningNumbers.sort();

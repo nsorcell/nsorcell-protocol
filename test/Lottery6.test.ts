@@ -8,10 +8,10 @@ import { developmentChains, networkConfig } from "../helper-hardhat.config"
 
 describe("Lottery6", function () {
   const config = networkConfig[network.config.chainId!],
-    winningNumbers = [1, 9, 16, 24, 25, 41],
-    threeHits = [1, 9, 16, 4, 5, 6],
-    fourHits = [1, 9, 16, 24, 5, 6],
-    fiveHits = [1, 9, 16, 24, 25, 6]
+    winningNumbers = [3, 7, 18, 21, 34, 45],
+    threeHits = [3, 7, 18, 4, 5, 6],
+    fourHits = [3, 7, 18, 21, 5, 6],
+    fiveHits = [3, 7, 18, 21, 34, 6]
 
   let accounts: SignerWithAddress[],
     deployer: SignerWithAddress,
